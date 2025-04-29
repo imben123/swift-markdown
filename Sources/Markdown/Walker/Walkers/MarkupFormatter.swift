@@ -883,6 +883,12 @@ public struct MarkupFormatter: MarkupWalker {
         print("~", for: strikethrough)
     }
 
+    public mutating func visitHighlight(_ highlight: Highlight) {
+        print("::", for: highlight)
+        descendInto(highlight)
+        print("::", for: highlight)
+    }
+
     /// Format a table as an indivisible unit.
     ///
     /// Because tables likely print multiple cells of inline content next

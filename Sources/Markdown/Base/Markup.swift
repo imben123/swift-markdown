@@ -57,6 +57,8 @@ func makeMarkup(_ data: _MarkupData) -> Markup {
         return Text(data)
     case .strikethrough:
         return Strikethrough(data)
+    case .highlight:
+        return Highlight(data)
     case .table:
         return Table(data)
     case .tableRow:

@@ -45,6 +45,7 @@ add_library(Markdown
   "Inline Nodes/Inline Containers/InlineAttributes.swift"
   "Inline Nodes/Inline Containers/Link.swift"
   "Inline Nodes/Inline Containers/Strikethrough.swift"
+  "Inline Nodes/Inline Containers/Highlight.swift"
   "Inline Nodes/Inline Containers/Strong.swift"
   "Inline Nodes/Inline Leaves/CustomInline.swift"
   "Inline Nodes/Inline Leaves/InlineCode.swift"

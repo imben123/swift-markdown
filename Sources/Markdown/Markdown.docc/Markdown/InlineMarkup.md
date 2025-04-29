@@ -7,6 +7,7 @@
 - ``Image``
 - ``Link``
 - ``Strikethrough``
+- ``Highlight``
 - ``Strong``
 
 ### Inline Leaves

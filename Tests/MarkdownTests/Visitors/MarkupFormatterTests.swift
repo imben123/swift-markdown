@@ -1449,16 +1449,16 @@ class MarkupFormatterTableTests: XCTestCase {
 
     func testRoundTripStructure() {
         let source = """
-        |*A*|**B**|~C~|
-        |:-|:--:|--:|
-        |[Apple](https://apple.com)|![image](image.png)|<https://swift.org>|
-        |<br/>|| |
+        |*A*|**B**|~C~|::D::|
+        |:-|:--:|--:|--|
+        |[Apple](https://apple.com)|![image](image.png)|<https://swift.org>|==Highlighted==|
+        |<br/>|| | |
         """
 
         let document = Document(parsing: source)
         let expectedDump = """
         Document
-        └─ Table alignments: |l|c|r|
+        └─ Table alignments: |l|c|r|-|
            ├─ Head
            │  ├─ Cell
            │  │  └─ Emphasis
@@ -1466,9 +1466,12 @@ class MarkupFormatterTableTests: XCTestCase {
            │  ├─ Cell
            │  │  └─ Strong
            │  │     └─ Text "B"
+           │  ├─ Cell
+           │  │  └─ Strikethrough
+           │  │     └─ Text "C"
            │  └─ Cell
-           │     └─ Strikethrough
-           │        └─ Text "C"
+           │     └─ Highlight
+           │        └─ Text "D"
            └─ Body
               ├─ Row
               │  ├─ Cell
@@ -1477,23 +1480,27 @@ class MarkupFormatterTableTests: XCTestCase {
               │  ├─ Cell
               │  │  └─ Image source: "image.png"
               │  │     └─ Text "image"
+              │  ├─ Cell
+              │  │  └─ Link destination: "https://swift.org"
+              │  │     └─ Text "https://swift.org"
               │  └─ Cell
-              │     └─ Link destination: "https://swift.org"
-              │        └─ Text "https://swift.org"
+              │     └─ Highlight
+              │        └─ Text "Highlighted"
               └─ Row
                  ├─ Cell colspan: 2
                  │  └─ InlineHTML <br/>
                  ├─ Cell colspan: 0
+                 ├─ Cell
                  └─ Cell
         """
         XCTAssertEqual(expectedDump, document.debugDescription())
 
         let formatted = document.format()
         let expected = """
-        |*A*                       |**B**              |~C~                |
-        |:-------------------------|:-----------------:|------------------:|
-        |[Apple](https://apple.com)|![image](image.png)|<https://swift.org>|
-        |<br/>                                        ||                   |
+        |*A*                       |**B**              |~C~                |::D::          |
+        |:-------------------------|:-----------------:|------------------:|---------------|
+        |[Apple](https://apple.com)|![image](image.png)|<https://swift.org>|==Highlighted==|
+        |<br/>                                        ||                   |               |
         """
         XCTAssertEqual(expected, formatted)
 
