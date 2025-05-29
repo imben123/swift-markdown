@@ -631,15 +631,60 @@ struct MarkupParser {
         if !options.contains(.disableSourcePosOpts) {
             cmarkOptions |= CMARK_OPT_SOURCEPOS
         }
-        
+
         let parser = cmark_parser_new(cmarkOptions)
-        
+
         cmark_parser_attach_syntax_extension(parser, cmark_find_syntax_extension("table"))
         cmark_parser_attach_syntax_extension(parser, cmark_find_syntax_extension("strikethrough"))
         cmark_parser_attach_syntax_extension(parser, cmark_find_syntax_extension("highlight"))
         cmark_parser_attach_syntax_extension(parser, cmark_find_syntax_extension("tasklist"))
         cmark_parser_feed(parser, string, string.utf8.count)
-        let rawDocument = cmark_parser_finish(parser)
+
+        let rawDocument = cmark_parser_finish_without_reset(parser)
+
+        var linkReferences: [LinkReference] = []
+        let refmap = cmark_parser_get_refmap(parser)
+        if let map = refmap {
+            var entry = cmark_map_first_entry(map)
+            while entry != nil {
+                if let defPtr = cmark_map_entry_get_definition(entry) {
+                    let definition = defPtr.pointee
+                    let startLocation = SourceLocation(
+                        line: Int(definition.start_line),
+                        column: Int(definition.start_column),
+                        source: nil
+                    )
+                    let endLocation = SourceLocation(
+                        line: Int(definition.end_line),
+                        column: Int(definition.end_column) + 1,
+                        source: nil
+                    )
+                    let range = startLocation..<endLocation
+                    let label = String(cString: definition.label)
+                    let url = String(cString: definition.url)
+                    if let titleCstr = definition.title {
+                        let title = String(cString: titleCstr)
+                        linkReferences.append(.init(
+                            label: label,
+                            url: url,
+                            title: title,
+                            sourceRange: range
+                        ))
+                    } else {
+                        linkReferences.append(.init(
+                            label: label,
+                            url: url,
+                            title: nil,
+                            sourceRange: range
+                        ))
+                    }
+                }
+                entry = cmark_map_entry_next(entry)
+            }
+        }
+
+        cmark_parser_reset_after_finish(parser)
+
         let initialState = MarkupConverterState(source: source, iterator: cmark_iter_new(rawDocument), event: CMARK_EVENT_NONE, node: nil, options: options, headerSeen: false, pendingTableBody: nil).next()
         precondition(initialState.event == CMARK_EVENT_ENTER)
         precondition(initialState.nodeType == .document)
@@ -661,7 +706,9 @@ struct MarkupParser {
 
         let data = _MarkupData(AbsoluteRawMarkup(markup: conversion.result,
                                                 metadata: MarkupMetadata(id: .newRoot(), indexInParent: 0)))
-        return makeMarkup(data) as! Document
+        var result = makeMarkup(data) as! Document
+        result.linkReferences = linkReferences
+        return result
     }
 }
 

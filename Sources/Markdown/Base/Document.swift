@@ -14,6 +14,7 @@ import Foundation
 ///
 /// - note: Although this could be considered a block element that can contain block elements, a `Document` itself can't be the child of any other markup, so it is not considered a block element.
 public struct Document: Markup, BasicBlockContainer {
+    public var linkReferences: [LinkReference] = []
     public var _data: _MarkupData
 
     init(_ raw: RawMarkup) throws {
