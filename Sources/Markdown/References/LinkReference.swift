@@ -12,4 +12,12 @@ public struct LinkReference {
   public let url: String
   public let title: String?
   public let sourceRange: SourceRange
+
+  public var plainText: String {
+    if let title {
+      return "[\(label)]: \(url) \"\(title)\""
+    } else {
+      return "[\(label)]: \(url)"
+    }
+  }
 }
